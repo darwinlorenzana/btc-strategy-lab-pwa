@@ -7,9 +7,9 @@
   <meta name="theme-color" content="#08111f">
   <meta name="description" content="Mobile BTC Strategy Lab dashboard for BTC, HYPE, SOL, ETH, and XAUT spot-market research.">
 
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="icon" href="./icons/icon-192-v2.png" type="image/png">
-  <link rel="apple-touch-icon" href="./icons/icon-192-v2.png">
+  <link rel="manifest" href="/btc-strategy-lab-pwa/manifest.webmanifest">
+  <link rel="icon" href="/btc-strategy-lab-pwa/icons/icon-192-v2.png" type="image/png">
+  <link rel="apple-touch-icon" href="/btc-strategy-lab-pwa/icons/icon-192-v2.png">
 
   <title>BTC Strategy Lab</title>
 
@@ -206,7 +206,7 @@
 
     if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(() => {});
+        navigator.serviceWorker.register('/btc-strategy-lab-pwa/sw.js?v=3', { scope: '/btc-strategy-lab-pwa/' }).catch(() => {});
       });
     }
   </script>
