@@ -1,77 +1,49 @@
 const CACHE_NAME = 'btc-strategy-lab-shell-v3';
 const APP_CACHE_PREFIX = 'btc-strategy-lab-shell-';
-const BASE_PATH = '/btc-strategy-lab-pwa/';
-const SHELL_FILES = [
-  BASE_PATH,
-  BASE_PATH + 'index.html',
-  BASE_PATH + 'manifest.webmanifest'
-];
+const BASE = '/btc-strategy-lab-pwa/';
+const REQUIRED = [BASE, BASE + 'index.html', BASE + 'manifest.webmanifest'];
+const OPTIONAL = [BASE + 'icons/icon-192-v2.png', BASE + 'icons/icon-512-v2.png'];
 
-// Install the shell first. Optional icons must not prevent the worker from installing.
 self.addEventListener('install', event => {
-  event.waitUntil((async () => {
-    const cache = await caches.open(CACHE_NAME);
-    await cache.addAll(SHELL_FILES);
-    const optionalIcons = [
-      BASE_PATH + 'icons/icon-192-v2.png',
-      BASE_PATH + 'icons/icon-512-v2.png'
-    ];
-    await Promise.allSettled(optionalIcons.map(async path => {
-      const response = await fetch(path, { cache: 'no-cache' });
-      if (response.ok) await cache.put(path, response);
-    }));
-    await self.skipWaiting();
-  })());
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(async cache => {
+      await cache.addAll(REQUIRED);
+      await Promise.all(OPTIONAL.map(u => cache.add(u).catch(() => {})));
+    }).then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', event => {
-  event.waitUntil((async () => {
-    const keys = await caches.keys();
-    await Promise.all(keys
-      .filter(key => key.startsWith(APP_CACHE_PREFIX) && key !== CACHE_NAME)
-      .map(key => caches.delete(key)));
-    await self.clients.claim();
-  })());
+  event.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(
+        keys.filter(k => k.startsWith(APP_CACHE_PREFIX) && k !== CACHE_NAME)
+            .map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
+  );
 });
 
 self.addEventListener('fetch', event => {
-  const request = event.request;
-  if (request.method !== 'GET') return;
+  const req = event.request;
+  const url = new URL(req.url);
+  // Never touch Apps Script, Sheets, Telegram, prices: cross-origin passes through.
+  if (req.method !== 'GET' || url.origin !== self.location.origin) return;
+  if (!url.pathname.startsWith(BASE) || url.pathname.endsWith('/sw.js')) return;
 
-  const url = new URL(request.url);
-  // Never intercept Apps Script, Google APIs, market data, or other external requests.
-  if (url.origin !== self.location.origin) return;
-  if (!url.pathname.startsWith(BASE_PATH)) return;
-
-  // Let navigations try the live page first, then use the cached shell offline.
-  if (request.mode === 'navigate') {
-    event.respondWith((async () => {
-      try {
-        return await fetch(request);
-      } catch (_) {
-        return (await caches.match(BASE_PATH + 'index.html')) ||
-               new Response('BTC Strategy Lab is offline. Reconnect and reload.', {
-                 status: 503,
-                 headers: { 'Content-Type': 'text/plain; charset=utf-8' }
-               });
+  event.respondWith(
+    fetch(req).then(res => {
+      const cacheable = res.ok && (req.mode === 'navigate' ||
+        url.pathname.endsWith('/manifest.webmanifest') || url.pathname.includes('/icons/'));
+      if (cacheable) {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then(c => c.put(req, copy));
       }
-    })());
-    return;
-  }
-
-  // Cache-first only for local PWA shell assets; external integrations are untouched.
-  event.respondWith((async () => {
-    const cached = await caches.match(request);
-    if (cached) return cached;
-    try {
-      const response = await fetch(request);
-      if (response.ok) {
-        const cache = await caches.open(CACHE_NAME);
-        await cache.put(request, response.clone());
-      }
-      return response;
-    } catch (_) {
-      return new Response('', { status: 504, statusText: 'Gateway Timeout' });
-    }
-  })());
+      return res;
+    }).catch(async () => {
+      const cached = await caches.match(req);
+      if (cached) return cached;
+      if (req.mode === 'navigate') return caches.match(BASE + 'index.html');
+      return Response.error();
+    })
+  );
 });
