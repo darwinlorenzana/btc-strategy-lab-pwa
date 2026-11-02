@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#08111f">
+  <meta name="description" content="Mobile BTC Strategy Lab dashboard for BTC, HYPE, SOL, ETH, and XAUT spot-market research.">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <title>BTC Strategy Lab</title>
+  <style>
+    :root{color-scheme:dark;--bg:#08111f;--panel:#111d2e;--line:#27364a;--muted:#a3b2c7;--accent:#19d895}
+    *{box-sizing:border-box}
+    html,body{margin:0;width:100%;height:100%;background:var(--bg);color:#f4f7fb;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    body{overflow:hidden}
+    .shell{height:100%;height:100dvh;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+    header{min-height:54px;display:flex;align-items:center;gap:10px;padding:8px 14px;background:#0c1727;border-bottom:1px solid var(--line);flex-shrink:0}
+    .logo{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:#193a39;color:var(--accent);font-size:19px;font-weight:900}
+    .brand{font-weight:750;font-size:14px;line-height:1.15}.sub{font-size:11px;color:var(--muted);margin-top:3px}
+    .status{margin-left:auto;font-size:10px;color:#b8c7d9;border:1px solid var(--line);padding:5px 8px;border-radius:999px;white-space:nowrap}
+    main{flex:1;min-height:0;position:relative}
+    iframe{display:block;width:100%;height:100%;border:0;background:var(--bg)}
+    .message{position:absolute;inset:0;display:none;align-items:center;justify-content:center;padding:24px;background:var(--bg);text-align:center;z-index:2}
+    .message.show{display:flex}.card{max-width:480px;border:1px solid var(--line);border-radius:18px;padding:22px;background:var(--panel)}
+    h1{font-size:20px;margin:0 0 10px}.copy{font-size:14px;line-height:1.55;color:var(--muted)}
+    button{border:0;border-radius:10px;background:var(--accent);color:#062016;font-weight:750;padding:11px 15px;margin-top:14px;cursor:pointer}
+    noscript{padding:16px;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="logo">₿</div>
+      <div><div class="brand">BTC Strategy Lab</div><div class="sub">Spot research · BTC auto-scan · manual token checks</div></div>
+      <div class="status" id="status">Connecting…</div>
+    </header>
+    <main>
+      <iframe id="appFrame" title="BTC Strategy Lab dashboard" allow="clipboard-read; clipboard-write" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      <section class="message" id="setupMessage"><div class="card"><h1>Connect your Apps Script dashboard</h1><p class="copy">The PWA shell is published, but the Apps Script web app URL has not been configured. Open <code>index.html</code> in your GitHub repository, replace <code>PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE</code> with the deployed web app URL ending in <code>/exec</code>, then commit the change.</p></div></section>
+      <section class="message" id="offlineMessage"><div class="card"><h1>You're offline</h1><p class="copy">The app shell is installed, but live prices and signals require an internet connection. Reconnect and reload to continue monitoring.</p><button id="retryBtn">Try again</button></div></section>
+    </main>
+  </div>
+  <noscript>This app needs JavaScript enabled.</noscript>
+  <script>
+    // Replace this placeholder with the deployed Apps Script web app URL ending in /exec.
+    const APPS_SCRIPT_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+    const frame = document.getElementById('appFrame');
+    const status = document.getElementById('status');
+    const setupMessage = document.getElementById('setupMessage');
+    const offlineMessage = document.getElementById('offlineMessage');
+    function loadApp(){
+      if(!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec(?:\?.*)?$/.test(APPS_SCRIPT_URL)){
+        setupMessage.classList.add('show'); status.textContent='Setup needed'; return;
+      }
+      setupMessage.classList.remove('show');
+      frame.src=APPS_SCRIPT_URL;
+      status.textContent=navigator.onLine?'Opening dashboard…':'Offline';
+      offlineMessage.classList.toggle('show',!navigator.onLine);
+    }
+    frame.addEventListener('load',()=>{if(navigator.onLine){status.textContent='Dashboard';offlineMessage.classList.remove('show')}});
+    window.addEventListener('online',()=>{status.textContent='Reconnecting…';offlineMessage.classList.remove('show');if(frame.src)frame.contentWindow.location.reload()});
+    window.addEventListener('offline',()=>{status.textContent='Offline';offlineMessage.classList.add('show')});
+    document.getElementById('retryBtn').addEventListener('click',()=>{offlineMessage.classList.remove('show');if(frame.src)frame.contentWindow.location.reload();else loadApp()});
+    loadApp();
+    if('serviceWorker' in navigator && location.protocol.startsWith('http')) window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+  </script>
+</body>
+</html>
