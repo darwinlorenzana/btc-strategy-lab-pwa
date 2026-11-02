@@ -1,7 +1,7 @@
 {
   "id": "./",
   "name": "BTC Strategy Lab",
-  "short_name": "Strategy Lab",
+  "short_name": "BTC Strategy Lab",
   "description": "Mobile spot-market strategy research dashboard for BTC, HYPE, SOL, ETH, and XAUT.",
   "start_url": "./",
   "scope": "./",
