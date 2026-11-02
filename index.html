@@ -37,14 +37,14 @@
     </header>
     <main>
       <iframe id="appFrame" title="BTC Strategy Lab dashboard" allow="clipboard-read; clipboard-write" referrerpolicy="strict-origin-when-cross-origin"></iframe>
-      <section class="message" id="setupMessage"><div class="card"><h1>Connect your Apps Script dashboard</h1><p class="copy">The PWA shell is published, but the Apps Script web app URL has not been configured. Open <code>index.html</code> in your GitHub repository, replace <code>PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE</code> with the deployed web app URL ending in <code>/exec</code>, then commit the change.</p></div></section>
+      <section class="message" id="setupMessage"><div class="card"><h1>Connect your Apps Script dashboard</h1><p class="copy">The PWA shell is published, but the Apps Script web app URL has not been configured. Open <code>index.html</code> in your GitHub repository, replace <code>https://script.google.com/macros/s/AKfycbwk5BP6N8gZV4PgWZc4iEmIk7UBIdSGasew8Ei7rPfnbDxceNo5W-UofurYrKW2Jh7E/exec</code> with the deployed web app URL ending in <code>/exec</code>, then commit the change.</p></div></section>
       <section class="message" id="offlineMessage"><div class="card"><h1>You're offline</h1><p class="copy">The app shell is installed, but live prices and signals require an internet connection. Reconnect and reload to continue monitoring.</p><button id="retryBtn">Try again</button></div></section>
     </main>
   </div>
   <noscript>This app needs JavaScript enabled.</noscript>
   <script>
     // Replace this placeholder with the deployed Apps Script web app URL ending in /exec.
-    const APPS_SCRIPT_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwk5BP6N8gZV4PgWZc4iEmIk7UBIdSGasew8Ei7rPfnbDxceNo5W-UofurYrKW2Jh7E/exec';
     const frame = document.getElementById('appFrame');
     const status = document.getElementById('status');
     const setupMessage = document.getElementById('setupMessage');
